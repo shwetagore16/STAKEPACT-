@@ -218,8 +218,8 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-obsidian px-8 pb-16 pt-10 text-white">
-      <div className="mx-auto max-w-6xl">
+    <div className="app-page bg-obsidian text-white">
+      <div className="app-container max-w-6xl">
         <section className="py-16 text-center">
           <div className="relative mx-auto h-24 w-24">
             <div

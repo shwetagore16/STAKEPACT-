@@ -126,8 +126,8 @@ export default function Vote() {
   }
 
   return (
-    <div className="min-h-screen bg-obsidian px-8 pb-12 pt-10 text-white">
-      <div className="mx-auto max-w-7xl">
+    <div className="app-page bg-obsidian text-white">
+      <div className="app-container max-w-7xl">
         <div className="flex flex-col gap-4 border-b border-glass-border pb-6">
           <h1 className="font-syne text-3xl">Vote Required</h1>
           <p className="text-white/50">

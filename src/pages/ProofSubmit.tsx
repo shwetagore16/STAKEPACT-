@@ -224,7 +224,7 @@ export default function ProofSubmit() {
   }
 
   return (
-    <div className="min-h-screen bg-obsidian text-white">
+    <div className="app-page bg-obsidian text-white">
       <div className="flex items-center gap-4 border-b border-danger/30 bg-danger/10 px-8 py-3">
         <Link to={`/pact/${id ?? 'pact-4721'}`} className="text-sm text-white/50 transition-colors hover:text-white" data-cursor="pointer">
           {'<'} Pact #4721
@@ -235,7 +235,7 @@ export default function ProofSubmit() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-8 pb-16 pt-10">
+      <main className="app-container max-w-6xl px-2 pb-16 pt-10 sm:px-4 lg:px-8">
         <section className="py-12 text-center">
           <h1 className="font-syne text-4xl">Submit Your Proof</h1>
 

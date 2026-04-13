@@ -103,8 +103,8 @@ export default function Categories() {
   const show = (key: CategoryKey) => visibleCards.includes(key)
 
   return (
-    <div className="min-h-screen bg-obsidian px-4 pb-20 pt-10 text-white sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <div className="app-page bg-obsidian text-white">
+      <div className="app-container max-w-7xl">
         <section className="py-20 text-center">
           <p className="font-mono text-[11px] tracking-[4px] text-teal">CHOOSE YOUR ARENA</p>
           <h1 className="mt-4 font-syne text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">

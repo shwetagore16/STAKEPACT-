@@ -488,8 +488,8 @@ export default function CreatePact() {
   }
 
   return (
-    <div className="min-h-screen bg-obsidian text-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-8 py-12 lg:flex-row">
+    <div className="app-page bg-obsidian text-white">
+      <div className="app-container flex max-w-[1280px] flex-col gap-10 py-4 lg:flex-row">
           <div className="w-full lg:w-[55%]">
             <StepIndicator currentStep={currentStep} />
             <input type="hidden" {...register('category')} />

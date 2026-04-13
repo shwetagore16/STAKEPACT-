@@ -134,6 +134,74 @@
   animation: block-stack 1.2s ease-in-out infinite;
 }
 
+.hero-copy {
+  pointer-events: none;
+}
+
+.hero-copy a {
+  pointer-events: auto;
+}
+
+.hero-title {
+  font-family: 'Sora', 'Space Grotesk', sans-serif;
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+
+.hero-reveal {
+  animation: hero-clip-reveal 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes hero-clip-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+.app-page {
+  min-height: 100vh;
+  padding: clamp(18px, 2vw, 28px) clamp(14px, 2.2vw, 30px) clamp(40px, 6vw, 72px);
+}
+
+.app-container {
+  width: 100%;
+  max-width: 1220px;
+  margin: 0 auto;
+}
+
+.app-hero-block {
+  margin-bottom: 28px;
+}
+
+.app-hero-kicker {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 209, 0.85);
+}
+
+.app-hero-title {
+  margin-top: 8px;
+  font-family: 'Sora', 'Space Grotesk', sans-serif;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.app-hero-subtitle {
+  margin-top: 10px;
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.56);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

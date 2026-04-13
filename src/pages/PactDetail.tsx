@@ -419,7 +419,7 @@ export default function PactDetail() {
   }).format(pact.deadline)
 
   return (
-    <div className="min-h-screen bg-obsidian pb-12 text-white">
+    <div className="app-page bg-obsidian pb-12 text-white">
       <div className="sticky top-0 z-40 flex items-center gap-4 border-b border-glass-border bg-obsidian/80 px-8 py-4 backdrop-blur-glass">
         <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white" data-cursor="pointer">
           <ArrowLeft className="h-4 w-4" />

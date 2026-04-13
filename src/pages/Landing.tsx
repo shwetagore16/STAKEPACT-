@@ -1,654 +1,575 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  motion,
-  useInView,
-  useScroll,
-  useSpring,
-  useTransform,
-} from 'framer-motion'
-import {
-  ArrowRight,
-  CheckCircle,
-  ChevronDown,
-  Play,
-  Shield,
-  TrendingUp,
-  Users,
-  Zap,
-} from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
-import { CountUp } from '../components/ui/CountUp'
-import { FlipClock } from '../components/ui/FlipClock'
-import { GlassCard } from '../components/ui/GlassCard'
-import { MagneticButton } from '../components/ui/MagneticButton'
-import { ScrambleText } from '../components/ui/ScrambleText'
-import { cn } from '../lib/utils'
+import { useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import * as THREE from 'three'
 
-const sections = [
-  { id: 'hero', label: 'HERO' },
-  { id: 'stats', label: 'STATS' },
-  { id: 'how-it-works', label: 'HOW IT WORKS' },
-  { id: 'categories', label: 'CATEGORIES' },
-  { id: 'enterprise', label: 'ENTERPRISE' },
-] as const
-
-type SectionId = (typeof sections)[number]['id']
-
-type StepData = {
-  step: string
-  title: string
-  description: string
-  content: React.ReactNode
+type HeroNavItem = {
+  label: string
+  href: string
 }
 
-function StepCard({ step, title, description, content, index }: StepData & { index: number }) {
-  const ref = useRef<HTMLDivElement | null>(null)
-  const inView = useInView(ref, { amount: 0.35, once: true })
+const heroNavItems: HeroNavItem[] = [
+  { label: 'How It Works', href: '/#how-it-works' },
+  { label: 'Categories', href: '/#categories' },
+  { label: 'Enterprise', href: '/#enterprise' },
+  { label: 'CommitScore', href: '/#enterprise' },
+]
 
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.2 }}
-      className="relative"
-    >
-      <div className="pointer-events-none absolute right-0 top-0 font-syne text-[160px] font-bold text-white/[0.03]">
-        {step}
-      </div>
-      <div className="text-teal text-[11px] tracking-[4px] font-mono">STEP {step}</div>
-      <h3 className="mt-2 font-syne text-2xl font-bold text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-white/50">{description}</p>
-      <div className="mt-6">{content}</div>
-    </motion.div>
-  )
+const steps = [
+  {
+    id: '01',
+    title: 'Set Your Commitment',
+    text: 'Define outcomes, pick verification, and align members before the deadline starts.',
+  },
+  {
+    id: '02',
+    title: 'Stake Your Amount in INR',
+    text: 'Lock stake in escrow with transparent rules and real-time status for every participant.',
+  },
+  {
+    id: '03',
+    title: 'Deliver. Prove. Earn.',
+    text: 'Submit proof and reclaim stake with rewards when your commitment is completed on time.',
+  },
+]
+
+const categories = [
+  { name: 'Government', note: 'Compliance programs and public-sector milestones' },
+  { name: 'Corporate', note: 'B2B delivery timelines and contract outcomes' },
+  { name: 'Legal', note: 'Verifier-backed legal and compliance commitments' },
+  { name: 'Education', note: 'Study circles, cohorts, and exam accountability' },
+  { name: 'Personal', note: 'Fitness, habit, and side-project execution goals' },
+]
+
+function createFaceCanvas(size = 1024) {
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    throw new Error('Failed to create 2D canvas context')
+  }
+  return { canvas, ctx, size }
+}
+
+function drawGrid(ctx: CanvasRenderingContext2D, size: number, step: number, color: string) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1
+  for (let x = 0; x <= size; x += step) {
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, size)
+    ctx.stroke()
+  }
+  for (let y = 0; y <= size; y += step) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(size, y)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function drawHexMesh(ctx: CanvasRenderingContext2D, size: number, radius: number, color: string) {
+  const h = Math.sqrt(3) * radius
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1.2
+
+  for (let y = -h; y < size + h; y += h) {
+    for (let x = -radius * 2; x < size + radius * 2; x += radius * 3) {
+      const offsetX = ((Math.floor(y / h) % 2) * 1.5 + 0.5) * radius
+      const cx = x + offsetX
+      const cy = y
+      ctx.beginPath()
+      for (let i = 0; i < 6; i += 1) {
+        const a = (Math.PI / 3) * i
+        const px = cx + radius * Math.cos(a)
+        const py = cy + radius * Math.sin(a)
+        if (i === 0) ctx.moveTo(px, py)
+        else ctx.lineTo(px, py)
+      }
+      ctx.closePath()
+      ctx.stroke()
+    }
+  }
+
+  ctx.restore()
+}
+
+function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+  ctx.save()
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)'
+  ctx.fillStyle = 'rgba(255,255,255,0.12)'
+  ctx.lineWidth = 8
+
+  ctx.beginPath()
+  ctx.arc(x, y - 30 * scale, 46 * scale, Math.PI * 1.15, Math.PI * 1.85)
+  ctx.stroke()
+
+  ctx.fillRect(x - 58 * scale, y - 10 * scale, 116 * scale, 120 * scale)
+  ctx.strokeRect(x - 58 * scale, y - 10 * scale, 116 * scale, 120 * scale)
+
+  ctx.beginPath()
+  ctx.arc(x, y + 46 * scale, 13 * scale, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'
+  ctx.fill()
+
+  ctx.restore()
 }
 
 export default function Landing() {
-  const navigate = useNavigate()
-  const [scrolled, setScrolled] = useState(false)
-  const [activeSection, setActiveSection] = useState<SectionId>('hero')
-
-  const heroRef = useRef<HTMLElement | null>(null)
-  const statsRef = useRef<HTMLElement | null>(null)
-  const howRef = useRef<HTMLElement | null>(null)
-  const categoriesRef = useRef<HTMLElement | null>(null)
-  const enterpriseRef = useRef<HTMLElement | null>(null)
-
-  const heroInView = useInView(heroRef, { amount: 0.35, once: true })
-  const statsInView = useInView(statsRef, { amount: 0.35, once: true })
-  const howInView = useInView(howRef, { amount: 0.2, once: true })
-  const categoriesInView = useInView(categoriesRef, { amount: 0.2, once: true })
-  const enterpriseInView = useInView(enterpriseRef, { amount: 0.2, once: true })
-
-  const { scrollYProgress } = useScroll()
-  const heroFloat = useTransform(scrollYProgress, [0, 0.4], [0, -32])
-  const heroSpring = useSpring(heroFloat, { stiffness: 70, damping: 22 })
+  const mountRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 80)
-    }
+    const mount = mountRef.current
+    if (!mount) return
 
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.1, 100)
+    camera.position.set(0, 0, 8)
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id as SectionId)
-          }
-        })
-      },
-      { threshold: 0.45 },
-    )
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setSize(mount.clientWidth, mount.clientHeight)
+    renderer.setClearColor(0x000000, 0)
+    mount.appendChild(renderer.domElement)
 
-    sections.forEach((section) => {
-      const element = document.getElementById(section.id)
-      if (element) observer.observe(element)
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5)
+    scene.add(ambient)
+
+    const orbitLightA = new THREE.PointLight(0x7c3aed, 2.5, 8)
+    orbitLightA.position.set(4, 1.2, 0)
+    scene.add(orbitLightA)
+
+    const orbitLightB = new THREE.PointLight(0x06b6d4, 1.5, 8)
+    orbitLightB.position.set(-3, -0.8, 0)
+    scene.add(orbitLightB)
+
+    const fill = new THREE.DirectionalLight(0xffffff, 0.6)
+    fill.position.set(-3, 3, 4)
+    scene.add(fill)
+
+    const geometry = new THREE.BoxGeometry(2.5, 2.5, 2.5)
+
+    const front = createFaceCanvas()
+    const back = createFaceCanvas()
+    const top = createFaceCanvas()
+    const bottom = createFaceCanvas()
+    const left = createFaceCanvas()
+    const right = createFaceCanvas()
+
+    const frontGradient = front.ctx.createLinearGradient(0, 0, front.size, front.size)
+    frontGradient.addColorStop(0, '#1a0b2e')
+    frontGradient.addColorStop(0.55, '#7c3aed')
+    frontGradient.addColorStop(1, '#2e1065')
+    front.ctx.fillStyle = frontGradient
+    front.ctx.fillRect(0, 0, front.size, front.size)
+    drawGrid(front.ctx, front.size, 56, 'rgba(187,155,255,0.15)')
+    front.ctx.fillStyle = 'rgba(255,255,255,0.95)'
+    front.ctx.font = '900 142px Sora, sans-serif'
+    front.ctx.textAlign = 'center'
+    front.ctx.textBaseline = 'middle'
+    front.ctx.fillText('STAKE', front.size / 2, front.size / 2)
+
+    const backGradient = back.ctx.createLinearGradient(0, 0, back.size, back.size)
+    backGradient.addColorStop(0, '#083344')
+    backGradient.addColorStop(0.6, '#06b6d4')
+    backGradient.addColorStop(1, '#0e7490')
+    back.ctx.fillStyle = backGradient
+    back.ctx.fillRect(0, 0, back.size, back.size)
+    drawHexMesh(back.ctx, back.size, 28, 'rgba(240,253,250,0.2)')
+    back.ctx.fillStyle = 'rgba(255,255,255,0.96)'
+    back.ctx.font = '900 150px Sora, sans-serif'
+    back.ctx.textAlign = 'center'
+    back.ctx.textBaseline = 'middle'
+    back.ctx.fillText('EARN', back.size / 2, back.size / 2)
+
+    const topGradient = top.ctx.createLinearGradient(0, 0, top.size, top.size)
+    topGradient.addColorStop(0, '#2e1065')
+    topGradient.addColorStop(1, '#111827')
+    top.ctx.fillStyle = topGradient
+    top.ctx.fillRect(0, 0, top.size, top.size)
+    top.ctx.fillStyle = 'rgba(255,255,255,0.9)'
+    top.ctx.font = '700 112px Sora, sans-serif'
+    top.ctx.textAlign = 'center'
+    top.ctx.textBaseline = 'middle'
+    top.ctx.fillText('+18.7% APY', top.size / 2, top.size / 2)
+
+    const bottomGradient = bottom.ctx.createLinearGradient(0, 0, bottom.size, bottom.size)
+    bottomGradient.addColorStop(0, '#020617')
+    bottomGradient.addColorStop(1, '#172554')
+    bottom.ctx.fillStyle = bottomGradient
+    bottom.ctx.fillRect(0, 0, bottom.size, bottom.size)
+
+    const leftGradient = left.ctx.createLinearGradient(0, 0, left.size, left.size)
+    leftGradient.addColorStop(0, '#581c87')
+    leftGradient.addColorStop(0.55, '#db2777')
+    leftGradient.addColorStop(1, '#be185d')
+    left.ctx.fillStyle = leftGradient
+    left.ctx.fillRect(0, 0, left.size, left.size)
+    left.ctx.fillStyle = 'rgba(255,255,255,0.95)'
+    left.ctx.font = '900 122px Sora, sans-serif'
+    left.ctx.textAlign = 'center'
+    left.ctx.fillText('SECURE', left.size / 2, left.size / 2 - 120)
+    drawLockIcon(left.ctx, left.size / 2, left.size / 2 + 120, 1)
+
+    const rightGradient = right.ctx.createLinearGradient(0, 0, right.size, right.size)
+    rightGradient.addColorStop(0, '#042f2e')
+    rightGradient.addColorStop(0.6, '#14b8a6')
+    rightGradient.addColorStop(1, '#0f766e')
+    right.ctx.fillStyle = rightGradient
+    right.ctx.fillRect(0, 0, right.size, right.size)
+    right.ctx.fillStyle = 'rgba(255,255,255,0.96)'
+    right.ctx.font = '900 132px Sora, sans-serif'
+    right.ctx.textAlign = 'center'
+    right.ctx.textBaseline = 'middle'
+    right.ctx.fillText('LIQUID', right.size / 2, right.size / 2)
+
+    const textures = [front, back, top, bottom, left, right].map(({ canvas }) => {
+      const texture = new THREE.CanvasTexture(canvas)
+      texture.needsUpdate = true
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      return texture
     })
 
-    return () => observer.disconnect()
+    const materials = textures.map(
+      (texture) =>
+        new THREE.MeshStandardMaterial({
+          map: texture,
+          roughness: 0.32,
+          metalness: 0.45,
+          emissive: new THREE.Color(0x09090b),
+          emissiveIntensity: 0.35,
+        }),
+    )
+
+    const cube = new THREE.Mesh(geometry, materials)
+    cube.position.set(2.5, 0, 0)
+    scene.add(cube)
+
+    const starGeometry = new THREE.BufferGeometry()
+    const starVertices = new Float32Array(2000 * 3)
+    for (let i = 0; i < 2000; i += 1) {
+      const i3 = i * 3
+      starVertices[i3] = (Math.random() - 0.5) * 60
+      starVertices[i3 + 1] = (Math.random() - 0.5) * 34
+      starVertices[i3 + 2] = (Math.random() - 0.5) * 50
+    }
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(starVertices, 3))
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.015, transparent: true, opacity: 0.9 })
+    const stars = new THREE.Points(starGeometry, starMaterial)
+    scene.add(stars)
+
+    const shadowGeometry = new THREE.CircleGeometry(1.5, 64)
+    const shadowMaterial = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      uniforms: {
+        uColor: { value: new THREE.Vector3(124 / 255, 58 / 255, 237 / 255) },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform vec3 uColor;
+        void main() {
+          float dist = distance(vUv, vec2(0.5));
+          float alpha = smoothstep(0.5, 0.0, dist) * 0.4;
+          gl_FragColor = vec4(uColor, alpha);
+        }
+      `,
+    })
+    const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial)
+    shadow.rotation.x = -Math.PI / 2
+    shadow.position.set(2.5, -1.8, 0)
+    scene.add(shadow)
+
+    const raycaster = new THREE.Raycaster()
+    const pointer = new THREE.Vector2(2, 2)
+    let mouseX = 0
+    let mouseY = 0
+    let hovered = false
+
+    const particlesTop = Array.from({ length: 36 }, () => ({
+      x: Math.random() * top.size,
+      y: Math.random() * top.size,
+      speed: 0.3 + Math.random() * 0.8,
+      size: 1 + Math.random() * 2.2,
+      alpha: 0.15 + Math.random() * 0.4,
+    }))
+
+    const flowingLines = Array.from({ length: 8 }, (_, i) => ({
+      offset: i * 0.6,
+      amp: 16 + i * 2,
+    }))
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect()
+      const localX = event.clientX - rect.left
+      const localY = event.clientY - rect.top
+
+      mouseX = (localX / rect.width - 0.5) * 2
+      mouseY = (localY / rect.height - 0.5) * 2
+
+      pointer.x = (localX / rect.width) * 2 - 1
+      pointer.y = -(localY / rect.height) * 2 + 1
+    }
+
+    const onResize = () => {
+      if (!mount) return
+      camera.aspect = mount.clientWidth / mount.clientHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(mount.clientWidth, mount.clientHeight)
+    }
+
+    window.addEventListener('resize', onResize)
+    window.addEventListener('pointermove', handlePointerMove)
+
+    const clock = new THREE.Clock()
+
+    const animate = () => {
+      const elapsed = clock.getElapsedTime()
+
+      raycaster.setFromCamera(pointer, camera)
+      hovered = raycaster.intersectObject(cube).length > 0
+
+      const rotationFactor = hovered ? 0.4 : 1
+      cube.rotation.y += 0.004 * rotationFactor
+      cube.rotation.x += 0.002 * rotationFactor
+
+      cube.rotation.y += mouseX * 0.0003
+      cube.rotation.x += mouseY * 0.0002
+
+      const targetScale = hovered ? 1.08 : 1
+      const nextScale = THREE.MathUtils.lerp(cube.scale.x, targetScale, 0.08)
+      cube.scale.set(nextScale, nextScale, nextScale)
+
+      orbitLightA.intensity = 2.2 + Math.sin(elapsed * 2.2) * 0.3
+      orbitLightA.position.x = Math.sin(elapsed) * 4
+      orbitLightA.position.z = Math.cos(elapsed) * 4
+
+      orbitLightB.position.x = Math.sin(elapsed + Math.PI) * 3
+      orbitLightB.position.z = Math.cos(elapsed + Math.PI) * 3
+
+      top.ctx.fillStyle = 'rgba(20,10,36,0.35)'
+      top.ctx.fillRect(0, 0, top.size, top.size)
+      top.ctx.fillStyle = 'rgba(255,255,255,0.92)'
+      top.ctx.font = '700 112px Sora, sans-serif'
+      top.ctx.textAlign = 'center'
+      top.ctx.textBaseline = 'middle'
+      top.ctx.fillText('+18.7% APY', top.size / 2, top.size / 2)
+      for (const p of particlesTop) {
+        p.y -= p.speed
+        if (p.y < -10) p.y = top.size + 10
+        top.ctx.beginPath()
+        top.ctx.fillStyle = `rgba(196,181,253,${p.alpha})`
+        top.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        top.ctx.fill()
+      }
+
+      bottom.ctx.fillStyle = '#020617'
+      bottom.ctx.fillRect(0, 0, bottom.size, bottom.size)
+      bottom.ctx.strokeStyle = 'rgba(56,189,248,0.75)'
+      bottom.ctx.lineWidth = 5
+      bottom.ctx.beginPath()
+      for (let x = 0; x <= bottom.size; x += 6) {
+        const y = bottom.size * 0.5 + Math.sin((x + elapsed * 220) * 0.018) * 80
+        if (x === 0) bottom.ctx.moveTo(x, y)
+        else bottom.ctx.lineTo(x, y)
+      }
+      bottom.ctx.stroke()
+
+      right.ctx.fillStyle = rightGradient
+      right.ctx.fillRect(0, 0, right.size, right.size)
+      right.ctx.fillStyle = 'rgba(255,255,255,0.96)'
+      right.ctx.font = '900 132px Sora, sans-serif'
+      right.ctx.textAlign = 'center'
+      right.ctx.textBaseline = 'middle'
+      right.ctx.fillText('LIQUID', right.size / 2, right.size * 0.34)
+      right.ctx.lineWidth = 3
+      for (const line of flowingLines) {
+        right.ctx.beginPath()
+        right.ctx.strokeStyle = 'rgba(94,234,212,0.55)'
+        for (let x = 0; x <= right.size; x += 10) {
+          const y = right.size * 0.62 + Math.sin(x * 0.014 + elapsed * 2 + line.offset) * line.amp
+          if (x === 0) right.ctx.moveTo(x, y)
+          else right.ctx.lineTo(x, y)
+        }
+        right.ctx.stroke()
+      }
+
+      textures[2].needsUpdate = true
+      textures[3].needsUpdate = true
+      textures[5].needsUpdate = true
+
+      renderer.render(scene, camera)
+      animationId = requestAnimationFrame(animate)
+    }
+
+    let animationId = requestAnimationFrame(animate)
+
+    return () => {
+      cancelAnimationFrame(animationId)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('pointermove', handlePointerMove)
+
+      geometry.dispose()
+      shadowGeometry.dispose()
+      starGeometry.dispose()
+      shadowMaterial.dispose()
+      starMaterial.dispose()
+      textures.forEach((texture) => texture.dispose())
+      materials.forEach((material) => material.dispose())
+      renderer.dispose()
+
+      if (mount.contains(renderer.domElement)) {
+        mount.removeChild(renderer.domElement)
+      }
+    }
   }, [])
 
-  const steps: StepData[] = [
-    {
-      step: '01',
-      title: 'Set Your Commitment',
-      description:
-        'Define outcomes, attach verifiers, and align every stakeholder before the clock starts.',
-      content: (
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Corporate', icon: <Users className="h-4 w-4 text-teal" /> },
-            { label: 'Education', icon: <TrendingUp className="h-4 w-4 text-teal" /> },
-            { label: 'Legal', icon: <Shield className="h-4 w-4 text-teal" /> },
-            { label: 'Personal', icon: <Zap className="h-4 w-4 text-teal" /> },
-          ].map((item) => (
-            <GlassCard
-              key={item.label}
-              tilt
-              glowColor="teal"
-              className="flex items-center gap-2 px-3 py-3 text-xs text-white/70"
-            >
-              {item.icon}
-              {item.label}
-            </GlassCard>
-          ))}
-        </div>
-      ),
-    },
-    {
-      step: '02',
-      title: 'Stake Your Amount in INR',
-      description:
-        'Lock your stake and let Algorand handle the enforcement. You always see INR, not crypto.',
-      content: (
-        <div className="rounded-2xl border border-glass-border bg-glass px-4 py-5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-white/60">Stake amount</span>
-            <span className="font-syne text-lg text-gold">INR 25,000</span>
-          </div>
-          <div className="mt-4 flex items-center gap-3 text-xs text-white/40">
-            <span>INR 500</span>
-            <div className="relative h-1 flex-1 rounded-full bg-white/10">
-              <div className="absolute left-0 top-0 h-1 w-2/3 rounded-full bg-gradient-to-r from-gold to-teal" />
-              <div className="absolute right-8 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-teal bg-obsidian" />
-            </div>
-            <span>INR 1,00,000</span>
-          </div>
-          <p className="mt-4 text-xs text-white/40">
-            Crypto is invisible. You always see INR.
-          </p>
-        </div>
-      ),
-    },
-    {
-      step: '03',
-      title: 'Deliver. Prove. Earn.',
-      description:
-        'Submit proof, trigger verifier checks, and reclaim your stake with bonuses.',
-      content: (
-        <GlassCard className="p-4" glowColor="teal" tilt>
-          <div className="flex items-start gap-3">
-            <motion.svg
-              width="40"
-              height="40"
-              viewBox="0 0 52 52"
-              fill="none"
-              className="text-teal"
-            >
-              <motion.circle
-                cx="26"
-                cy="26"
-                r="24"
-                stroke="currentColor"
-                strokeWidth="2"
-                opacity="0.3"
-              />
-              <motion.path
-                d="M16 27.5L23 34.5L37 20.5"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray="24"
-                strokeDashoffset={howInView ? 0 : 24}
-                animate={howInView ? { strokeDashoffset: 0 } : {}}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-              />
-            </motion.svg>
-            <div>
-              <div className="flex items-center gap-2 text-sm text-white">
-                <CheckCircle className="h-4 w-4 text-teal" /> Proof verified by GitHub API
-              </div>
-              <div className="mt-2 text-xs text-white/50">
-                INR 5,000 returned + INR 800 bonus
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-      ),
-    },
-  ]
-
   return (
-    <div className="relative">
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className={cn(
-          'fixed top-0 z-50 flex w-full items-center justify-between px-8 py-5 transition-all duration-500',
-          scrolled
-            ? 'bg-obsidian/80 backdrop-blur-glass border-b border-glass-border'
-            : 'bg-transparent',
-        )}
-      >
-        <Link to="/" className="font-syne text-xl font-bold flex items-center gap-2" data-cursor="pointer">
-          <span className="text-teal">*</span> StakePact
-        </Link>
-        <div className="hidden items-center gap-8 md:flex">
-          {[
-            { label: 'How It Works', id: 'how-it-works' },
-            { label: 'Categories', id: 'categories' },
-            { label: 'Enterprise', id: 'enterprise' },
-            { label: 'CommitScore', id: 'enterprise' },
-          ].map((item) => (
-            <a
-              key={item.label}
-              href={`#${item.id}`}
-              className="text-sm tracking-wide text-white/50 transition-colors hover:text-white"
-              data-cursor="pointer"
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-        <div className="flex items-center gap-3">
-          <MagneticButton variant="ghost">Connect Wallet</MagneticButton>
-          <MagneticButton variant="gold" onClick={() => navigate('/create')}>
-            Get Started <ArrowRight className="h-4 w-4" />
-          </MagneticButton>
-        </div>
-      </motion.nav>
-
-      <div className="fixed right-4 top-1/2 z-40 -translate-y-1/2 space-y-6">
-        {sections.map((section) => {
-          const isActive = activeSection === section.id
-          return (
-            <a
-              key={section.id}
-              href={`#${section.id}`}
-              className="flex items-center gap-3"
-              data-cursor="pointer"
-            >
-              <span
-                className={cn(
-                  'text-[10px] tracking-[3px] text-white/20',
-                  isActive && 'text-teal',
-                )}
-                style={{ writingMode: 'vertical-rl' }}
-              >
-                {section.label}
-              </span>
-              <span
-                className={cn(
-                  'h-px w-6 bg-transparent transition-colors duration-300',
-                  isActive && 'bg-teal',
-                )}
-              />
-            </a>
-          )
-        })}
-      </div>
-
-      <motion.section
-        id="hero"
-        ref={heroRef}
-        initial={{ opacity: 0, y: 40 }}
-        animate={heroInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8 }}
-        className="min-h-screen pt-24"
-      >
-        <div className="mx-auto flex min-h-screen max-w-7xl flex-col items-center gap-10 px-8 lg:flex-row">
-          <div className="w-full lg:w-[55%]">
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mb-6 text-[11px] font-mono tracking-[4px] text-teal"
-            >
-              POWERED BY ALGORAND
-            </motion.p>
-            <div className="font-syne text-5xl font-bold leading-none md:text-6xl lg:text-7xl">
-              <ScrambleText text="Your Deadline." delay={400} className="block" />
-              <ScrambleText text="Your Stake." delay={600} className="block" />
-              <ScrambleText
-                text="No Excuses."
-                delay={800}
-                className="block bg-gradient-to-r from-gold to-teal bg-clip-text text-transparent"
-              />
-            </div>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="mt-6 max-w-md text-lg leading-relaxed text-white/50"
-            >
-              The world's first commitment enforcement protocol. Stake INR against
-              deadlines - blockchain enforced, zero bureaucracy.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-              className="mt-10 flex flex-wrap gap-4"
-            >
-              <MagneticButton variant="gold" onClick={() => navigate('/create')}>
-                Create Your First Pact <ArrowRight className="h-4 w-4" />
-              </MagneticButton>
-              <MagneticButton
-                variant="ghost"
-                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                <Play className="h-4 w-4" /> Watch How It Works
-              </MagneticButton>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4 }}
-              className="mt-8 flex flex-wrap items-center gap-6 text-sm text-white/30"
-            >
-              <span className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-teal" /> Algorand Secured
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-teal" /> INR Payments
-              </span>
-              <span className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-teal" /> INR 4.2 Cr Staked
-              </span>
-            </motion.div>
-          </div>
-
-          <motion.div
-            className="flex w-full items-center justify-center lg:w-[45%]"
-            style={{ y: heroSpring }}
+    <div className="bg-obsidian text-white">
+      <header className="fixed left-0 top-0 z-30 w-full px-5 pt-5 sm:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#05070c]/70 px-4 py-3 backdrop-blur-xl sm:px-6">
+          <Link
+            to="/"
+            data-cursor="pointer"
+            className="font-syne text-base font-bold tracking-wide text-white sm:text-lg"
           >
-            <div className="relative h-96 w-96 animate-bob">
-              <svg viewBox="0 0 200 200" className="absolute inset-0 h-full w-full">
-                <polygon
-                  points="100,10 180,55 180,145 100,190 20,145 20,55"
-                  fill="rgba(0,255,209,0.05)"
-                  stroke="#00FFD1"
-                  strokeWidth="1"
-                  className="animate-spin-slow"
-                  style={{ transformOrigin: 'center' }}
-                />
-                <polygon
-                  points="100,30 165,67.5 165,132.5 100,170 35,132.5 35,67.5"
-                  fill="rgba(8,12,20,0.9)"
-                  stroke="rgba(0,255,209,0.3)"
-                  strokeWidth="0.5"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <p className="font-mono text-[10px] tracking-[3px] text-teal">PACT #4721</p>
-                <p className="mt-1 font-syne text-3xl font-bold text-white">INR 25,000</p>
-                <p className="mt-1 text-xs text-white/40">LOCKED IN ESCROW</p>
-                <div className="mt-4">
-                  <FlipClock targetDate={new Date(Date.now() + 72 * 3600 * 1000)} size="sm" />
-                </div>
-              </div>
+            StakePact
+          </Link>
 
-              {[
-                { initials: 'AP', pos: 'top-[6%] left-1/2 -translate-x-1/2', status: 'bg-emerald-400' },
-                { initials: 'IN', pos: 'top-[20%] right-[6%]', status: 'bg-emerald-400' },
-                { initials: 'KM', pos: 'bottom-[20%] right-[8%]', status: 'bg-amber-400' },
-                { initials: 'RS', pos: 'bottom-[6%] left-1/2 -translate-x-1/2', status: 'bg-emerald-400' },
-                { initials: 'TR', pos: 'bottom-[20%] left-[8%]', status: 'bg-emerald-400' },
-                { initials: 'MR', pos: 'top-[20%] left-[6%]', status: 'bg-amber-400' },
-              ].map((member) => (
-                <div
-                  key={member.initials}
-                  className={cn(
-                    'absolute flex h-10 w-10 items-center justify-center rounded-full border-2 border-teal/30 bg-obsidian text-xs text-white/70',
-                    member.pos,
-                  )}
-                >
-                  {member.initials}
-                  <span
-                    className={cn(
-                      'absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full',
-                      member.status,
-                    )}
-                  />
-                </div>
-              ))}
-
-              {[
-                { text: 'Stake: INR 5,000 | 5 members', pos: 'top-4 right-[-20%]', delay: 0 },
-                { text: 'Deadline: Friday 5PM', pos: 'left-[-20%] top-1/2 -translate-y-1/2', delay: 0.5 },
-                { text: 'GitHub API Verified', pos: 'bottom-8 right-[-15%]', delay: 1 },
-              ].map((pill) => (
-                <motion.div
-                  key={pill.text}
-                  className={cn(
-                    'absolute rounded-full border border-glass-border bg-glass px-4 py-2 text-xs text-white/70 backdrop-blur-glass',
-                    pill.pos,
-                  )}
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3 + pill.delay, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  {pill.text}
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-white/30"
-        >
-          <ChevronDown className="h-5 w-5" />
-          <span className="text-[10px] font-mono tracking-[3px] text-white/20">SCROLL</span>
-        </motion.div>
-      </motion.section>
-
-      <motion.section
-        id="stats"
-        ref={statsRef}
-        initial={{ opacity: 0, y: 40 }}
-        animate={statsInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8 }}
-        className="mt-20 border-y border-glass-border bg-glass py-10"
-      >
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 text-center md:grid-cols-4 md:divide-x md:divide-glass-border">
-          {[
-            { label: 'TOTAL STAKED', value: 42000000, suffix: ' Cr', prefix: 'INR ' },
-            { label: 'PACTS ACTIVE', value: 12847 },
-            { label: 'SUCCESS RATE', value: 89.3, suffix: '%', decimals: 1 },
-            { label: 'ENTERPRISES', value: 1204 },
-          ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-2">
-              <span className="font-syne text-4xl text-gold">
-                <CountUp
-                  end={stat.value}
-                  prefix={stat.prefix}
-                  suffix={stat.suffix}
-                  decimals={stat.decimals}
-                />
-              </span>
-              <span className="text-xs font-mono tracking-widest text-white/30">
-                {stat.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        id="how-it-works"
-        ref={howRef}
-        initial={{ opacity: 0, y: 40 }}
-        animate={howInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8 }}
-        className="mx-auto max-w-7xl px-8 py-32"
-      >
-        <div className="text-center">
-          <h2 className="font-syne text-4xl text-white">How StakePact Works</h2>
-          <p className="mt-4 text-white/40">
-            Every pact is time bound, cryptographically enforced, and impossible to ignore.
-          </p>
-        </div>
-
-        <div className="relative mx-auto mt-12 max-w-3xl">
-          <div className="h-px w-full bg-white/10" />
-          <motion.div
-            className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-teal"
-            animate={{ x: ['0%', '100%', '0%'] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </div>
-
-        <div className="mt-16 grid gap-10 lg:grid-cols-3">
-          {steps.map((step, index) => (
-            <StepCard key={step.step} {...step} index={index} />
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        id="categories"
-        ref={categoriesRef}
-        initial={{ opacity: 0, y: 40 }}
-        animate={categoriesInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8 }}
-        className="px-8 py-32"
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <h2 className="font-syne text-4xl text-white">Built for Every Industry</h2>
-            <p className="mt-4 text-white/40">
-              From government agencies to solo founders, StakePact adapts to your mission.
-            </p>
-          </div>
-
-          <div className="mt-16 grid auto-rows-[220px] gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: 'Government',
-                glow: 'violet',
-                icon: <Shield className="h-10 w-10 text-violet" />,
-                description: 'Escrowed compliance deadlines for public-sector programs.',
-                badge: 'Coming Soon',
-                span: 'row-span-2',
-              },
-              {
-                title: 'Corporate',
-                glow: 'teal',
-                icon: <Users className="h-10 w-10 text-sky-400" />,
-                description: 'Tie delivery KPIs to real financial outcomes.',
-                stat: '2,341 active pacts',
-                span: 'row-span-1',
-              },
-              {
-                title: 'Legal',
-                glow: 'danger',
-                icon: <CheckCircle className="h-10 w-10 text-danger" />,
-                description: 'Court-aligned enforcement with verifier checkpoints.',
-                badge: 'Requires Verifier',
-                span: 'row-span-1',
-              },
-              {
-                title: 'Education',
-                glow: 'teal',
-                icon: <TrendingUp className="h-10 w-10 text-teal" />,
-                description: 'Keep cohorts accountable through milestone staking.',
-                badge: 'Most Popular',
-                span: 'row-span-2',
-              },
-              {
-                title: 'Personal',
-                glow: 'gold',
-                icon: <Zap className="h-10 w-10 text-gold" />,
-                description: 'Solo goals with auto-verification support.',
-                badge: 'Auto-verify support',
-                span: 'row-span-1',
-              },
-            ].map((card) => (
-              <GlassCard
-                key={card.title}
-                tilt
-                glowColor={card.glow as 'teal' | 'gold' | 'violet' | 'danger'}
-                className={cn('flex h-full flex-col justify-between p-6', card.span)}
-              >
-                <div>
-                  {card.icon}
-                  <h3 className="mt-4 font-syne text-xl text-white">{card.title}</h3>
-                  <p className="mt-2 text-sm text-white/50">{card.description}</p>
-                </div>
-                <div className="flex items-center justify-between text-xs text-white/40">
-                  <span className="rounded-full border border-white/10 px-3 py-1">
-                    {card.badge || card.stat}
-                  </span>
-                  <Link
-                    to="/create"
-                    className="text-teal/70 transition-colors hover:text-teal"
+          <nav aria-label="Primary" className="flex-1 overflow-x-auto px-2">
+            <ul className="mx-auto flex w-max min-w-full items-center justify-center gap-6 whitespace-nowrap text-lg sm:gap-8 sm:text-[30px]">
+              {heroNavItems.map((item) => (
+                <li key={item.label}>
+                  <a
+                    href={item.href}
                     data-cursor="pointer"
+                    className="text-white/55 transition-colors duration-200 hover:text-white"
                   >
-                    Explore
-                  </Link>
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-        </div>
-      </motion.section>
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-      <motion.section
-        id="enterprise"
-        ref={enterpriseRef}
-        initial={{ opacity: 0, y: 40 }}
-        animate={enterpriseInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8 }}
-        className="px-8 py-20"
-      >
-        <div className="mx-auto max-w-6xl rounded-3xl border border-gold/10 bg-gradient-to-r from-gold/5 to-transparent px-8 py-16 md:px-16">
-          <div className="flex flex-col items-start justify-between gap-10 md:flex-row md:items-center">
-            <h3 className="max-w-2xl font-syne text-3xl text-white">
-              Does your company miss contract deadlines? Make them costly.
-            </h3>
-            <MagneticButton variant="gold" onClick={() => navigate('/dashboard')}>
-              Schedule Enterprise Demo <ArrowRight className="h-4 w-4" />
-            </MagneticButton>
-          </div>
+          <Link
+            to="/create"
+            data-cursor="pointer"
+            className="hidden rounded-md border border-[#7c3aed]/60 bg-[#7c3aed]/18 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#7c3aed]/30 md:inline-flex"
+          >
+            Launch
+          </Link>
         </div>
-      </motion.section>
+      </header>
 
-      <footer className="border-t border-white/5 px-8 py-12">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="font-syne text-xl font-bold text-white">StakePact</div>
-            <p className="mt-2 text-xs text-white/40">
-              Powered by Algorand | All amounts in INR
+      <section id="hero" className="relative min-h-screen w-full overflow-hidden bg-transparent">
+        <div ref={mountRef} className="absolute inset-0" />
+
+        <div className="hero-copy hero-reveal absolute left-0 top-0 z-10 flex min-h-screen w-full items-center px-6 sm:px-10 lg:px-20">
+          <div className="max-w-2xl pt-20">
+            <h1 className="hero-title text-white">Stake Smarter. Earn Together.</h1>
+            <p className="mt-6 max-w-xl text-base text-white/65 sm:text-lg">
+              Join the next generation DeFi staking network with transparent rewards,
+              high-yield pools, and institutional-grade security.
             </p>
-          </div>
-          <div className="grid grid-cols-2 gap-6 text-sm text-white/40 md:grid-cols-4">
-            <div className="space-y-2">
-              <div className="text-white/70">Product</div>
-              <div>Overview</div>
-              <div>Security</div>
-              <div>Pricing</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-white/70">Company</div>
-              <div>About</div>
-              <div>Careers</div>
-              <div>Press</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-white/70">Resources</div>
-              <div>Docs</div>
-              <div>Community</div>
-              <div>Help</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-white/70">Legal</div>
-              <div>Terms</div>
-              <div>Privacy</div>
-              <div>Compliance</div>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <Link
+                to="/create"
+                data-cursor="pointer"
+                className="rounded-md border border-[#7c3aed]/60 bg-[#7c3aed]/20 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#7c3aed]/35"
+              >
+                Start Staking
+              </Link>
+              <Link
+                to="/dashboard"
+                data-cursor="pointer"
+                className="rounded-md border border-white/20 px-6 py-3 text-sm font-semibold text-white/85 transition-colors hover:border-white/40 hover:text-white"
+              >
+                Explore Pools
+              </Link>
             </div>
           </div>
         </div>
-      </footer>
+      </section>
+
+      <section id="how-it-works" className="relative z-20 mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:px-12">
+        <p className="font-mono text-[11px] tracking-[4px] text-teal">HOW IT WORKS</p>
+        <h2 className="mt-4 font-syne text-4xl font-bold sm:text-5xl">How StakePact Works</h2>
+        <p className="mt-4 max-w-2xl text-white/60">
+          Every pact is time-bound, cryptographically enforced, and impossible to ignore.
+        </p>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {steps.map((step) => (
+            <article
+              key={step.id}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-[8px]"
+            >
+              <p className="font-mono text-xs tracking-[3px] text-teal">STEP {step.id}</p>
+              <h3 className="mt-3 font-syne text-xl font-bold">{step.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white/60">{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="categories" className="relative z-20 mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-12">
+        <p className="font-mono text-[11px] tracking-[4px] text-teal">CATEGORIES</p>
+        <h2 className="mt-4 font-syne text-4xl font-bold sm:text-5xl">Built for Every Industry</h2>
+        <p className="mt-4 max-w-2xl text-white/60">
+          From enterprise programs to solo goals, StakePact adapts to your mission.
+        </p>
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {categories.map((category) => (
+            <article
+              key={category.name}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-white/20"
+            >
+              <h3 className="font-syne text-lg font-bold">{category.name}</h3>
+              <p className="mt-2 text-sm text-white/55">{category.note}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="enterprise" className="relative z-20 mx-auto max-w-7xl px-6 pb-28 pt-16 sm:px-10 lg:px-12">
+        <div className="rounded-3xl border border-[#7c3aed]/30 bg-gradient-to-br from-[#1a0b2e]/70 via-[#0b1020]/80 to-[#05263a]/70 p-8 sm:p-10">
+          <p className="font-mono text-[11px] tracking-[4px] text-teal">ENTERPRISE</p>
+          <h2 className="mt-4 max-w-3xl font-syne text-3xl font-bold sm:text-4xl">
+            Does your company miss contract deadlines? Make them costly.
+          </h2>
+          <p className="mt-4 max-w-2xl text-white/60">
+            Get custom pact templates, dedicated verifier workflows, and full commitment analytics.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link
+              to="/create"
+              data-cursor="pointer"
+              className="rounded-md border border-teal/40 bg-teal/15 px-6 py-3 text-sm font-semibold text-teal transition-colors hover:bg-teal/25"
+            >
+              Schedule Enterprise Demo
+            </Link>
+            <Link
+              to="/profile"
+              data-cursor="pointer"
+              className="rounded-md border border-white/20 px-6 py-3 text-sm font-semibold text-white/85 transition-colors hover:border-white/40"
+            >
+              View CommitScore
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

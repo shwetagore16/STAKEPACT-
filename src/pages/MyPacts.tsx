@@ -183,8 +183,8 @@ export default function MyPacts() {
   const lostPactVisible = !query || 'Contract Filing'.toLowerCase().includes(query)
 
   return (
-    <div className="min-h-screen bg-obsidian px-4 pb-12 pt-8 text-white sm:px-6 lg:px-8 lg:pt-10">
-      <div className="mx-auto max-w-7xl">
+    <div className="app-page bg-obsidian text-white">
+      <div className="app-container max-w-7xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-syne text-2xl sm:text-3xl">My Pacts</h1>
           <div className="flex items-center gap-2">

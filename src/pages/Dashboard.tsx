@@ -156,7 +156,8 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-obsidian p-8 text-white">
+    <div className="app-page bg-obsidian text-white">
+      <div className="app-container">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div>
             <p className="font-syne text-2xl font-bold">Good morning, Arjun</p>
@@ -519,6 +520,7 @@ export default function Dashboard() {
             </motion.div>
           </div>
         </div>
+      </div>
     </div>
   )
 }
