@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
-import app from './app.js'
+import app from './app'
 
 dotenv.config()
 
-const port = Number(process.env.PORT ?? 4000)
+const PORT = process.env.PORT || 4000
 
-app.listen(port, () => {
+app.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`[stakepact-backend] listening on http://localhost:${port}`)
+  console.log(`StakePact API on port ${PORT}`)
 })

@@ -10,6 +10,8 @@ const PactDetail = lazy(() => import('../pages/PactDetail'))
 const Profile = lazy(() => import('../pages/Profile'))
 
 const EducationHub = lazy(() => import('../domains/education/pages/EducationHub'))
+const StudyCircle = lazy(() => import('../domains/education/pages/StudyCircle'))
+const CreateEducationPact = lazy(() => import('../domains/education/pages/CreateEducationPact'))
 const CorporateHub = lazy(() => import('../domains/corporate/pages/CorporateHub'))
 const LegalHub = lazy(() => import('../domains/legal/pages/LegalHub'))
 const GovernmentHub = lazy(() => import('../domains/government/pages/GovernmentHub'))
@@ -41,6 +43,8 @@ export function AppRoutes() {
           <Route path={ROUTES.dashboard} element={<Dashboard />} />
           <Route path={ROUTES.categories} element={<Categories />} />
           <Route path={ROUTES.educationHub} element={<EducationHub />} />
+          <Route path="/categories/education/study-circle" element={<StudyCircle />} />
+          <Route path="/categories/education/create" element={<CreateEducationPact />} />
           <Route path={ROUTES.corporateHub} element={<CorporateHub />} />
           <Route path={ROUTES.legalHub} element={<LegalHub />} />
           <Route path={ROUTES.governmentHub} element={<GovernmentHub />} />
