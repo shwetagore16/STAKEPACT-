@@ -16,6 +16,7 @@ import { FlipClock } from '../components/ui/FlipClock'
 import { GlassCard } from '../components/ui/GlassCard'
 import { MagneticButton } from '../components/ui/MagneticButton'
 import { usePactStore } from '../store/usePactStore'
+import { useUserStore } from '../store/useUserStore'
 import { cn } from '../lib/utils'
 
 type PactCard = {
@@ -57,7 +58,8 @@ const activityItems = [
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { pacts, user } = usePactStore()
+  const { pacts } = usePactStore()
+  const { user, commitScoreGrade } = useUserStore()
   const activePactsCount = pacts.filter((pact) => pact.status === 'active').length
 
   const formattedDate = useMemo(() => {
@@ -73,7 +75,7 @@ export default function Dashboard() {
 
   const sparklinePath = 'M4 22 L18 16 L30 20 L46 10 L64 12'
 
-  const commitScore = user.score || 847
+  const commitScore = user.commitScore || 847
   const gaugeRadius = 32
   const gaugeCircumference = 2 * Math.PI * gaugeRadius
   const gaugeOffset = gaugeCircumference * (1 - commitScore / 1000)
@@ -141,7 +143,7 @@ export default function Dashboard() {
       value: commitScore,
       icon: Shield,
       accent: 'text-violet',
-      footer: 'Grade: A+',
+      footer: `Grade: ${commitScoreGrade.grade}`,
       footerClass: 'text-violet',
       suffix: '/1000',
     },
@@ -160,7 +162,7 @@ export default function Dashboard() {
       <div className="app-container">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div>
-            <p className="font-syne text-2xl font-bold">Good morning, Arjun</p>
+            <p className="font-syne text-2xl font-bold">Good morning, {user.fullName.split(' ')[0]}</p>
             <p className="text-sm text-white/30">{formattedDate}</p>
           </div>
 
@@ -273,7 +275,7 @@ export default function Dashboard() {
                         />
                       </svg>
                       <div>
-                        <div className="text-sm text-violet">Grade: A+</div>
+                        <div className="text-sm text-violet">Grade: {commitScoreGrade.grade}</div>
                         <div className="text-xs text-white/40">Top 12%</div>
                       </div>
                     </div>

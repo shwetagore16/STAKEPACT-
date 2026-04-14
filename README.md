@@ -1,104 +1,147 @@
-# StakePact Frontend
+# StakePact Monorepo
 
-StakePact is a premium accountability product UI where users commit money against deadlines, submit proof, and resolve outcomes through automated checks, social voting, or designated verifiers.
+StakePact is a domain-driven accountability platform where users stake INR against commitments, submit proof, and resolve outcomes with transparent rules. This repository is structured for parallel development across frontend domains, backend services, and blockchain contracts.
 
-This repository contains the complete frontend application built with React, TypeScript, Vite, Tailwind, Framer Motion, and Zustand.
+Design system reference:
 
-## Highlights
-
-- Multi-page product flow: landing, dashboard, categories, pact creation, detail, proof submission, voting, profile, and pact list
-- Persistent app shell with route-aware sidebar and animated page transitions
-- Minimalist glass UI system with reusable primitives and motion-driven interactions
-- Countdown clocks, animated metrics, interactive cards, and smooth-scroll experience
-- Responsive layouts for desktop and mobile
+- Background: `#080C14`
+- Teal: `#00FFD1`
+- Gold: `#F5C842`
+- Violet: `#8A5AFF`
+- Danger: `#FF3B5C`
+- Fonts: Syne (headings), Space Grotesk (body)
 
 ## Tech Stack
 
-- React 18 + TypeScript
-- Vite 8
-- Tailwind CSS 3
-- Framer Motion
-- React Router 6
-- Zustand
-- React Hook Form + Zod
-- Lucide icons
-- Lenis smooth scrolling
+| Layer | Stack |
+| --- | --- |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Framer Motion, React Router, Zustand |
+| Backend | Node.js, Express, TypeScript, dotenv, cors |
+| Blockchain | Python, PyTeal, Algorand deployment scripting |
+| Tooling | ESLint, TypeScript compiler, pytest |
 
-## Getting Started
+## Team Domain Mapping
 
-### Prerequisites
+| Team Member | Ownership |
+| --- | --- |
+| Shweta | Cross-domain architecture and release coordination |
+| Member 1 | Education domain (frontend + backend contracts) |
+| Member 2 | Corporate domain (frontend + backend contracts) |
+| Member 3 | Legal domain (frontend + backend contracts) |
+| Member 4 | Government domain (frontend + backend contracts) |
+| Member 5 | Personal domain + shared platform modules |
 
-- Node.js 18+
-- npm 9+
+## Git Workflow
 
-### Install
+- `main`: production-ready branch, protected, merge via reviewed PR only
+- `dev`: integration branch for validated feature branches
+- `feat/domain-*`: domain-scoped branches (`feat/domain-education`, `feat/domain-corporate`, etc.)
+
+Suggested merge flow:
+
+1. Create feature branch from `dev`.
+2. Open PR into `dev` using `.github/PULL_REQUEST_TEMPLATE.md`.
+3. Run build/tests for changed layers.
+4. Merge `dev` into `main` for release cut.
+
+## Setup Commands
+
+### Frontend
 
 ```bash
 npm install
-```
-
-### Start Development Server
-
-```bash
 npm run dev
-```
-
-App runs at the local Vite URL shown in terminal, typically http://localhost:5173.
-
-### Build for Production
-
-```bash
 npm run build
 ```
 
-### Preview Production Build
+### Backend
 
 ```bash
-npm run preview
+cd backend
+npm install
+npm run dev
+npm run build
 ```
 
-## Available Scripts
+### Blockchain
 
-- npm run dev: Start Vite development server
-- npm run build: Type-check and build production assets
-- npm run preview: Preview production build locally
-- npm run lint: Run ESLint
+```bash
+cd blockchain
+python -m venv .venv
+.venv\Scripts\activate
+pip install pyteal pytest
+python deploy/deploy.py
+pytest
+```
 
-## Routes
-
-- /: Landing page (no sidebar)
-- /dashboard: App dashboard
-- /pacts: My Pacts list
-- /categories: Category Hub
-- /create: Create Pact wizard
-- /pact/:id: Pact detail
-- /pact/:id/submit: Proof submission
-- /pact/:id/vote: Voting flow
-- /profile: User profile
-
-## Project Structure
+## Folder Structure
 
 ```text
-src/
-  components/
-    layout/        # Shared app layout components
-    ui/            # Reusable UI primitives and effects
-  lib/             # Utility helpers
-  pages/           # Route-level pages
-  store/           # Zustand state store
-  styles/          # Global styling tokens and base rules
-  App.tsx          # Router, persistent shell, global effects
-  main.tsx         # App bootstrap
+STAKEPACT2/
+|-- backend/
+|   |-- src/
+|   |   |-- domains/
+|   |   |   |-- education/
+|   |   |   |-- corporate/
+|   |   |   |-- legal/
+|   |   |   |-- government/
+|   |   |   `-- personal/
+|   |   |-- shared/
+|   |   |   |-- middleware/
+|   |   |   |-- models/
+|   |   |   `-- utils/
+|   |   |-- app.ts
+|   |   `-- server.ts
+|   |-- .env.example
+|   |-- package.json
+|   `-- tsconfig.json
+|-- blockchain/
+|   |-- contracts/
+|   |   |-- core/
+|   |   |   `-- pact_escrow.py
+|   |   `-- domains/
+|   |       |-- education_pact.py
+|   |       |-- corporate_pact.py
+|   |       |-- legal_pact.py
+|   |       |-- government_pact.py
+|   |       `-- personal_pact.py
+|   |-- deploy/
+|   |   `-- deploy.py
+|   |-- tests/
+|   |   `-- test_pact.py
+|   |-- .env.example
+|   `-- README.md
+|-- src/
+|   |-- components/
+|   |   |-- layout/
+|   |   |-- shared/
+|   |   `-- ui/
+|   |-- domains/
+|   |   |-- education/{pages,components,hooks,types}
+|   |   |-- corporate/{pages,components,hooks,types}
+|   |   |-- legal/{pages,components,hooks,types}
+|   |   |-- government/{pages,components,hooks,types}
+|   |   `-- personal/{pages,components,hooks,types}
+|   |-- lib/
+|   |-- pages/
+|   |-- router/
+|   |-- store/
+|   `-- types/
+`-- .github/
+    `-- PULL_REQUEST_TEMPLATE.md
 ```
 
-## UI and Motion System
+## Frontend Routes
 
-- Global background and cursor effects are mounted once at app root
-- Route transitions use AnimatePresence for smooth entry/exit navigation
-- Shared components such as GlassCard and MagneticButton control interaction style across pages
-- Reduced-motion support is included for accessibility-aware environments
+- `/` -> Landing
+- `/dashboard` -> Dashboard (inside AppShell)
+- `/categories` -> Categories (inside AppShell)
+- `/categories/education` -> EducationHub
+- `/categories/corporate` -> CorporateHub
+- `/categories/legal` -> LegalHub
+- `/categories/government` -> GovernmentHub
+- `/categories/personal` -> PersonalHub
+- `/pact/:id` -> PactDetail
+- `/profile` -> Profile
 
-## Notes
-
-- This repository currently focuses on frontend product experience and interaction design.
-- If you plug in backend services later, keep API clients isolated by feature domain and avoid coupling UI primitives to network logic.
+All routes are lazy loaded via `React.lazy` + `Suspense` from `src/router/routes.tsx`.

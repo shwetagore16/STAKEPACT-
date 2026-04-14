@@ -1,0 +1,313 @@
+import {
+  BookOpen,
+  BriefcaseBusiness,
+  Landmark,
+  Scale,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react'
+import type { Category, Pact } from '../types/pact.types'
+
+type CategoryConfig = {
+  key: Category
+  label: string
+  color: string
+  icon: LucideIcon
+  description: string
+}
+
+export const CATEGORIES: CategoryConfig[] = [
+  {
+    key: 'education',
+    label: 'Education',
+    color: '#00FFD1',
+    icon: BookOpen,
+    description: 'Academic commitments, peer study groups, and cohort deadlines.',
+  },
+  {
+    key: 'corporate',
+    label: 'Corporate',
+    color: '#F5C842',
+    icon: BriefcaseBusiness,
+    description: 'Delivery pacts for teams, vendors, and client-facing milestones.',
+  },
+  {
+    key: 'legal',
+    label: 'Legal',
+    color: '#8A5AFF',
+    icon: Scale,
+    description: 'Legal filing and compliance timelines with verifiable proof.',
+  },
+  {
+    key: 'government',
+    label: 'Government',
+    color: '#4DB7FF',
+    icon: Landmark,
+    description: 'Public-sector process milestones and departmental accountability.',
+  },
+  {
+    key: 'personal',
+    label: 'Personal',
+    color: '#FF3B5C',
+    icon: UserRound,
+    description: 'Personal growth goals for fitness, learning, and side projects.',
+  },
+]
+
+export const ROUTES = {
+  landing: '/',
+  dashboard: '/dashboard',
+  categories: '/categories',
+  educationHub: '/categories/education',
+  corporateHub: '/categories/corporate',
+  legalHub: '/categories/legal',
+  governmentHub: '/categories/government',
+  personalHub: '/categories/personal',
+  pactDetail: '/pact/:id',
+  profile: '/profile',
+  myPacts: '/pacts',
+  createPact: '/create',
+  proofSubmit: '/pact/:id/submit',
+  vote: '/pact/:id/vote',
+} as const
+
+export const DOMAIN_COLORS: Record<Category, string> = {
+  education: '#00FFD1',
+  corporate: '#F5C842',
+  legal: '#8A5AFF',
+  government: '#4DB7FF',
+  personal: '#FF3B5C',
+}
+
+export const PLACEHOLDER_PACTS: Pact[] = [
+  {
+    id: 'edu-1001',
+    title: 'Machine Learning Final Submission',
+    description: 'Submit final model report and demo video before cohort cutoff.',
+    category: 'education',
+    status: 'active',
+    stakeAmount: 7500,
+    currency: 'INR',
+    deadline: '2026-05-15T17:30:00.000Z',
+    createdAt: '2026-04-01T08:30:00.000Z',
+    creatorId: 'usr-101',
+    members: [
+      {
+        memberId: 'usr-101',
+        name: 'Riya Sharma',
+        role: 'owner',
+        stakeAmount: 2500,
+        hasSubmittedProof: true,
+        joinedAt: '2026-04-01T08:30:00.000Z',
+      },
+      {
+        memberId: 'usr-102',
+        name: 'Neel Verma',
+        role: 'member',
+        stakeAmount: 2500,
+        hasSubmittedProof: false,
+        joinedAt: '2026-04-01T08:42:00.000Z',
+      },
+      {
+        memberId: 'usr-103',
+        name: 'Aisha Khan',
+        role: 'member',
+        stakeAmount: 2500,
+        hasSubmittedProof: false,
+        joinedAt: '2026-04-01T08:55:00.000Z',
+      },
+    ],
+    proofSubmissions: [
+      {
+        submissionId: 'sub-edu-1',
+        pactId: 'edu-1001',
+        memberId: 'usr-101',
+        submittedAt: '2026-04-09T12:10:00.000Z',
+        evidenceUrl: 'https://example.com/proofs/edu-1001-riya',
+        notes: 'Initial notebook and model checkpoints uploaded.',
+        verdict: 'pending',
+      },
+    ],
+  },
+  {
+    id: 'corp-2001',
+    title: 'Client UAT Release v2.3',
+    description: 'Ship QA signed build and deployment runbook for enterprise client.',
+    category: 'corporate',
+    status: 'active',
+    stakeAmount: 50000,
+    currency: 'INR',
+    deadline: '2026-05-03T11:00:00.000Z',
+    createdAt: '2026-03-20T10:00:00.000Z',
+    creatorId: 'usr-201',
+    members: [
+      {
+        memberId: 'usr-201',
+        name: 'Aarav Mehta',
+        role: 'owner',
+        stakeAmount: 15000,
+        hasSubmittedProof: true,
+        joinedAt: '2026-03-20T10:00:00.000Z',
+      },
+      {
+        memberId: 'usr-202',
+        name: 'Tanya Roy',
+        role: 'member',
+        stakeAmount: 20000,
+        hasSubmittedProof: false,
+        joinedAt: '2026-03-20T10:15:00.000Z',
+      },
+      {
+        memberId: 'usr-203',
+        name: 'Karan Sethi',
+        role: 'member',
+        stakeAmount: 15000,
+        hasSubmittedProof: false,
+        joinedAt: '2026-03-20T10:18:00.000Z',
+      },
+    ],
+    proofSubmissions: [
+      {
+        submissionId: 'sub-corp-1',
+        pactId: 'corp-2001',
+        memberId: 'usr-201',
+        submittedAt: '2026-04-10T09:30:00.000Z',
+        evidenceUrl: 'https://example.com/proofs/corp-2001-release-notes',
+        notes: 'Release notes and smoke-test matrix shared with client.',
+        verdict: 'pending',
+      },
+    ],
+  },
+  {
+    id: 'legal-3001',
+    title: 'Compliance Filing Packet Q2',
+    description: 'Submit statutory filing packet and counsel-verified annexure.',
+    category: 'legal',
+    status: 'active',
+    stakeAmount: 30000,
+    currency: 'INR',
+    deadline: '2026-04-28T14:00:00.000Z',
+    createdAt: '2026-04-06T07:30:00.000Z',
+    creatorId: 'usr-301',
+    members: [
+      {
+        memberId: 'usr-301',
+        name: 'Meera Iyer',
+        role: 'owner',
+        stakeAmount: 15000,
+        hasSubmittedProof: false,
+        joinedAt: '2026-04-06T07:30:00.000Z',
+      },
+      {
+        memberId: 'usr-302',
+        name: 'Varun Das',
+        role: 'verifier',
+        stakeAmount: 15000,
+        hasSubmittedProof: true,
+        joinedAt: '2026-04-06T07:44:00.000Z',
+      },
+    ],
+    proofSubmissions: [
+      {
+        submissionId: 'sub-legal-1',
+        pactId: 'legal-3001',
+        memberId: 'usr-302',
+        submittedAt: '2026-04-11T16:20:00.000Z',
+        evidenceUrl: 'https://example.com/proofs/legal-3001-counsel-note',
+        notes: 'Counsel note and annexure checklist attached.',
+        verdict: 'approved',
+        approvedBy: 'usr-301',
+      },
+    ],
+  },
+  {
+    id: 'gov-4001',
+    title: 'Tender Documentation Lock',
+    description: 'Finalize and upload tender pack before procurement window closes.',
+    category: 'government',
+    status: 'active',
+    stakeAmount: 65000,
+    currency: 'INR',
+    deadline: '2026-05-01T09:45:00.000Z',
+    createdAt: '2026-04-02T09:00:00.000Z',
+    creatorId: 'usr-401',
+    members: [
+      {
+        memberId: 'usr-401',
+        name: 'Rohan Kulkarni',
+        role: 'owner',
+        stakeAmount: 30000,
+        hasSubmittedProof: true,
+        joinedAt: '2026-04-02T09:00:00.000Z',
+      },
+      {
+        memberId: 'usr-402',
+        name: 'Nisha Bhat',
+        role: 'member',
+        stakeAmount: 20000,
+        hasSubmittedProof: false,
+        joinedAt: '2026-04-02T09:06:00.000Z',
+      },
+      {
+        memberId: 'usr-403',
+        name: 'Kunal Jain',
+        role: 'member',
+        stakeAmount: 15000,
+        hasSubmittedProof: false,
+        joinedAt: '2026-04-02T09:10:00.000Z',
+      },
+    ],
+    proofSubmissions: [
+      {
+        submissionId: 'sub-gov-1',
+        pactId: 'gov-4001',
+        memberId: 'usr-401',
+        submittedAt: '2026-04-12T08:00:00.000Z',
+        evidenceUrl: 'https://example.com/proofs/gov-4001-portal-upload',
+        notes: 'Procurement portal acknowledgement screenshot uploaded.',
+        verdict: 'pending',
+      },
+    ],
+  },
+  {
+    id: 'pers-5001',
+    title: 'Half-Marathon Training Cycle',
+    description: 'Complete 12-run schedule and submit weekly Strava logs.',
+    category: 'personal',
+    status: 'active',
+    stakeAmount: 5000,
+    currency: 'INR',
+    deadline: '2026-05-22T05:30:00.000Z',
+    createdAt: '2026-04-08T06:20:00.000Z',
+    creatorId: 'usr-501',
+    members: [
+      {
+        memberId: 'usr-501',
+        name: 'Isha Kapoor',
+        role: 'owner',
+        stakeAmount: 2500,
+        hasSubmittedProof: true,
+        joinedAt: '2026-04-08T06:20:00.000Z',
+      },
+      {
+        memberId: 'usr-502',
+        name: 'Dev Nanda',
+        role: 'member',
+        stakeAmount: 2500,
+        hasSubmittedProof: false,
+        joinedAt: '2026-04-08T06:28:00.000Z',
+      },
+    ],
+    proofSubmissions: [
+      {
+        submissionId: 'sub-pers-1',
+        pactId: 'pers-5001',
+        memberId: 'usr-501',
+        submittedAt: '2026-04-13T05:10:00.000Z',
+        evidenceUrl: 'https://example.com/proofs/pers-5001-week1',
+        notes: 'Week 1 run history exported from Strava.',
+        verdict: 'pending',
+      },
+    ],
+  },
+]
